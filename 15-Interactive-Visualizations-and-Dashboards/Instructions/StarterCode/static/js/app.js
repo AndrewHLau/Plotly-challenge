@@ -1,54 +1,126 @@
 ﻿// View data
+var jsondata;
+
+console.log("javascriptisloaded");
+
 d3.json("samples.json").then( (data)=>{
-    console.log(data);
+    jsondata = data;
+    console.log(jsondata);
+    dropdown()
 });
-​
-// Initialize Page
-function init(){
-    d3.json("samples.json").then((data)=>{
-​
-        // Create dropdown Menu
-        // Use select.append to add options w/ texts and value
-​
-        // Build charts and metadata for the first sample aka first "name" in names array
-​
-        // Create bar chart for the first subject in the data
-​
-        // Get the variables necessary to create bar plot
-        var values = data.samples[0].sample_values;
-        var labels = data.samples[0].otu_ids;
-        var hovertext = data.samples[0].otu_labels;
-​
-        // Use slice to get the top 10 values & reverse to make bars stack greatest to smallest
-        
-        // Create your bar chart using plotly
-​
-        // Bubble plot
-​
-        // Insert metadata into panel for first subject
-​
-        var mData = d3.select("#sample-metadata");
-        // choose first subject's metadata to get selectedMetadata
-        // selectedMetadata --> Append something for each
-        // Use Object.entries to iterate over selectedMetata
-    });
+
+// Function for creating the dropdowns
+function dropdown (){
+var names = jsondata.names
+var dropdownMenu = d3.select("#selDataset");
+names.forEach(name => {
+    dropdownMenu
+        .append("option")
+        .property("value",name)
+        .text(name)
+});
+console.log(names);
 }
-​
-// Update plots and metadata for newly selected value
-function optionChanged(selectValue){
-    d3.json("samples.json").then((data)=> {
-        // Filter data by matching id for samples to the selectValue
-        
-        // Update values for barchart
-        // Use restlye to update bar chart
-        plotly.restyle("bar", update);
-        
-        // Update values for bubbleplot
-        // Use restyle to update bubbleplot
-​
-        
-        // Build metadata based on the filter
-    });
+
+// Function for populating the meta data
+function metadata (subjectID){
+var id = jsondata.metadata[0].id
+var ethnicity = jsondata.metadata[0].ethnicity  
+var gender = jsondata.metadata[0].gender  
+var age = jsondata.metadata[0].age  
+var location = jsondata.metadata[0].location
+var bbtype = jsondata.metadata[0].bbtype  
+var wfreq = jsondata.metadata[0].wfreq 
+
+var mData = d3.select("#sample-metadata");
+
+
+mData.append("panel-body").property("value",id).text(`id: ${id}`);
+mData.append("br");
+mData.append("panel-body").property("value",ethnicity).text(`ethnicity: ${ethnicity}`);
+mData.append("br");
+mData.append("panel-body").property("value",gender).text(`gender: ${gender}`);
+mData.append("br");
+mData.append("panel-body").property("value",age).text(`age: ${age}`);
+mData.append("br");
+mData.append("panel-body").property("value",location).text(`location: ${location}`);
+mData.append("br");
+mData.append("panel-body").property("value",bbtype).text(`bbtype: ${bbtype}`);
+mData.append("br");
+mData.append("panel-body").property("value",wfreq).text(`wfreq: ${wfreq}`);
+
+console.log(id);
+console.log(ethnicity);
+console.log(gender);
+console.log(age);
+console.log(location);
+console.log(bbtype);
+console.log(wfreq);
+  
 }
-​
-init();
+
+// Function for building the charts
+function chart (subjectID){
+var values = jsondata.samples[0].sample_values;
+var labels = jsondata.samples[0].otu_ids;
+var hovertext = jsondata.samples[0].otu_labels;
+var barchart = d3.select("#bar");
+       // Use slice to get the top 10 values & reverse to make bars stack greatest to smallest
+       var sliced = values.slice(0, 10);
+       console.log(sliced);
+       var slicedlabels = labels.slice(0, 10);
+       console.log(slicedlabels);
+
+       var reverse = sliced.reverse();
+       console.log(reverse);
+
+       // Create your bar chart using plotly
+       // Create the Trace
+       var trace1 = {
+           x: sliced,
+           y: ["OTU 1977", "OTU 2318", "OTU 189", "OTU 352","OTU 1189","OTU 41",
+           "OTU 2264", "OTU 482", "OTU 2859", "OTU 1167"],
+           text: hovertext,
+           type: "bar",
+           orientation: "h"
+           };
+// Create the data array for our plot
+       var data = [trace1];
+
+       var layout = {                 
+        yaxis: slicedlabels
+      };
+
+// Plot the chart to a div tag with id "bar"
+       Plotly.newPlot("bar", data,layout); 
+
+var bubblechart = d3.select("#bubble");
+
+       // Create your bubble chart using plotly
+       // Create the Trace
+       var trace2 = {
+           mode: "markers",
+           x: labels,
+           y: values,
+           marker: {
+            size: values,
+            colors: "green",
+            text: hovertext
+          }
+           };
+// Create the data array for our plot
+       var data = [trace2];
+
+       var layout = {                 
+        xaxis: { title: "OTU ID"}
+      };
+
+// Plot the chart to a div tag with id "bubble"
+       Plotly.newPlot("bubble", data, layout); 
+}
+
+//
+function optionChanged(subjectID){
+metadata(subjectID)
+chart(subjectID)
+}
